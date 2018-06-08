@@ -1,124 +1,104 @@
-
-Sliders
-Integer:
-  01,000500
-01002003004005006007008009001,000
-
-Decimal:
-  010.5
-00.10.20.30.40.50.60.70.80.91
-
-Range:
-  11,000200500
-11012013014015016017018019011,000
-
-Custom Format:
-  $10,000$0
-02,5005,0007,50010,000
-
-Looping Animation:
-  2,0001
-12014016018011,2011,6012,000
-
-Name	Value
-Integer	500
-Decimal	0.5
-Range	200 500
-Custom Format	0
-Animation	1
-Sliders 
-by RStudio, Inc.
-
-This example demonstrates Shiny's versatile sliderInput widget.
-
-Slider inputs can be used to select single values, to select a continuous range of values, and even to animate over a range.
-
-show with app
-app.R
 library(shiny)
 
-# Define UI for slider demo app ----
+# Define UI for random distribution app ----
 ui <- fluidPage(
-
-# App title ----
-titlePanel("Sliders"),
-
-# Sidebar layout with input and output definitions ----
-sidebarLayout(
-
-# Sidebar to demonstrate various slider options ----
-sidebarPanel(
-
-# Input: Simple integer interval ----
-sliderInput("integer", "Integer:",
-min = 0, max = 1000,
-value = 500),
-
-# Input: Decimal interval with step value ----
-sliderInput("decimal", "Decimal:",
-min = 0, max = 1,
-value = 0.5, step = 0.1),
-
-# Input: Specification of range within an interval ----
-sliderInput("range", "Range:",
-min = 1, max = 1000,
-value = c(200,500)),
-
-# Input: Custom currency format for with basic animation ----
-sliderInput("format", "Custom Format:",
-min = 0, max = 10000,
-value = 0, step = 2500,
-pre = "$", sep = ",",
-animate = TRUE),
-
-# Input: Animation with custom interval (in ms) ----
-# to control speed, plus looping
-sliderInput("animation", "Looping Animation:",
-min = 1, max = 2000,
-value = 1, step = 10,
-animate =
-animationOptions(interval = 300, loop = TRUE))
-
-),
-
-# Main panel for displaying outputs ----
-mainPanel(
-
-# Output: Table summarizing the values entered ----
-tableOutput("values")
-
-)
-)
+  
+  # App title ----
+  titlePanel("Intelligent project management"),
+  
+  # Sidebar layout with input and output definitions ----
+  sidebarLayout(
+    
+    # Sidebar panel for inputs ----
+    sidebarPanel(
+      
+      # Input: Select the random distribution type ----
+      radioButtons("dist", "Issue class type:",
+                   c("Digital" = "norm",
+                     "Loyalty" = "unif",
+                     "Biometrics" = "lnorm",
+                     "State services" = "exp",
+                     "Geolocation" = "norm",
+                     "Artificial Intelligence" = "unif",
+                     "Medicine" = "lnorm",
+                     "Chat-bot" = "exp")),
+      
+      # br() element to introduce extra vertical spacing ----
+      br(),
+      
+      # Input: Slider for the number of observations to generate ----
+      sliderInput("n",
+                  "Number of elements in class:",
+                  value = 3,
+                  min = 1,
+                  max = 5),
+      
+      h5(textOutput("currentTime"))
+      
+    ),
+    
+    # Main panel for displaying outputs ----
+    mainPanel(
+      
+      # Output: Tabset w/ plot, summary, and table ----
+      tabsetPanel(type = "tabs",
+                  tabPanel("Plot", plotOutput("plot")),
+                  tabPanel("Summary", verbatimTextOutput("summary")),
+                  tabPanel("Table", tableOutput("table"))
+      )
+      
+    )
+  )
 )
 
-# Define server logic for slider examples ----
-server <- function(input, output) {
-
-# Reactive expression to create data frame of all input values ----
-sliderValues <- reactive({
-
-data.frame(
-Name = c("Integer",
-"Decimal",
-"Range",
-"Custom Format",
-"Animation"),
-Value = as.character(c(input$integer,
-input$decimal,
-paste(input$range, collapse = " "),
-input$format,
-input$animation)),
-stringsAsFactors = FALSE)
-
-})
-
-# Show the values in an HTML table ----
-output$values <- renderTable({
-sliderValues()
-})
-
+# Define server logic for random distribution app ----
+server <- function(input, output, session) {
+  
+  # Reactive expression to generate the requested distribution ----
+  # This is called whenever the inputs change. The output functions
+  # defined below then use the value computed from this expression
+  d <- reactive({
+    dist <- switch(input$dist,
+                   norm = rnorm,
+                   unif = runif,
+                   lnorm = rlnorm,
+                   exp = rexp,
+                   rnorm)
+    
+    dist(input$n)
+  })
+  
+  # Generate a plot of the data ----
+  # Also uses the inputs to build the plot label. Note that the
+  # dependencies on the inputs and the data reactive expression are
+  # both tracked, and all expressions are called in the sequence
+  # implied by the dependency graph.
+  output$plot <- renderPlot({
+    dist <- input$dist
+    n <- input$n
+    
+    hist(d(),
+         main = paste("r", dist, "(", n, ")", sep = ""),
+         col = "#75AADB", border = "white")
+  })
+  
+  # Generate a summary of the data ----
+  output$summary <- renderPrint({
+    summary(d())
+  })
+  
+  # Generate an HTML table view of the data ----
+  output$table <- renderTable({
+    d()
+  })
+  
+  output$currentTime <- renderText({
+    invalidateLater(1000, session)
+    paste("Cur. time info:", Sys.time())
+  })
+  
+  
 }
 
 # Create Shiny app ----
 shinyApp(ui, server)
-Code license: MIT
