@@ -29,9 +29,28 @@ ui <- fluidPage(
       # Input: Slider for the number of observations to generate ----
       sliderInput("n",
                   "Number of elements in class:",
-                  value = 3,
+                  value = 5,
                   min = 1,
                   max = 5),
+      
+      
+      # br() element to introduce extra vertical spacing ----
+      br(),
+      
+      # Input: Selector for choosing dataset ----
+      selectInput(inputId = "dataset",
+                  label = "Choose a specific issue:",
+                  choices = c("Issue #1", "Issue #2", "Issue #3","Issue #4","Issue #5")),
+      
+      # Input: Numeric entry for number of obs to view ----
+      numericInput(inputId = "obs",
+                   label = "Number of similar issues:",
+                   value = 5),
+      
+      
+      # br() element to introduce extra vertical spacing ----
+      br(),
+      
       
       h5(textOutput("currentTime"))
       
@@ -42,9 +61,9 @@ ui <- fluidPage(
       
       # Output: Tabset w/ plot, summary, and table ----
       tabsetPanel(type = "tabs",
-                  tabPanel("Plot", plotOutput("plot")),
-                  tabPanel("Summary", verbatimTextOutput("summary")),
-                  tabPanel("Table", tableOutput("table"))
+                  tabPanel("Issues in same class", plotOutput("plot")),
+                  tabPanel("Issue summary", verbatimTextOutput("summary")),
+                  tabPanel("Similar issues", tableOutput("table"))
       )
       
     )
